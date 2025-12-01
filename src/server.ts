@@ -225,6 +225,59 @@ app.get("/todos", async (req: Request, res: Response) => {
   }
 });
 
+// update in todos with PUT method
+app.put("/todos/:id", async (req: Request, res: Response) => {
+  const { title } = req.body;
+  try {
+    const result = await pool.query(
+      `UPDATE todos SET title=$1 WHERE id=$2 RETURNING *`,
+      [title, req.params.id]
+    );
+    if (result.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        message: "Data Not Found",
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        message: "Data Updated Successfully...",
+        data: result.rows[0],
+      });
+    }
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+// using delete in todos with DELETE method
+app.delete("/todos/:id", async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query(`DELETE FROM todos WHERE id = $1`, [
+      req.params.id,
+    ]);
+    if (result.rowCount === 0) {
+      res.status(404).json({
+        success: false,
+        message: "Data Not Found",
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        message: "Data Delete Successfully",
+      });
+    }
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
 // not found routes
 app.use((req: Request, res: Response) => {
   res.status(404).json({
